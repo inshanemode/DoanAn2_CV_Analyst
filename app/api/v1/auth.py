@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import OperationalError
 
 from app.core.database import get_db
 from app.core.security import (
@@ -24,25 +25,41 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
     description="Tạo tài khoản người dùng mới. Mật khẩu sẽ được mã hóa bằng bcrypt trước khi lưu.",
 )
 def register(payload: RegisterRequest, db: Session = Depends(get_db)):
-    # Check duplicate email
-    existing = db.query(User).filter(User.email == payload.email).first()
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Email '{payload.email}' đã được sử dụng.",
-        )
+    try:
+        # Check duplicate email
+        existing = db.query(User).filter(User.email == payload.email).first()
+        if existing:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Email '{payload.email}' đã được sử dụng.",
+            )
 
-    hashed = hash_password(payload.mat_khau)
-    new_user = User(
-        ho_ten=payload.ho_ten,
-        email=payload.email,
-        mat_khau=hashed,
-        vai_tro=payload.vai_tro or "CANDIDATE",
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return new_user
+        hashed = hash_password(payload.mat_khau)
+        new_user = User(
+            ho_ten=payload.ho_ten,
+            email=payload.email,
+            mat_khau=hashed,
+            vai_tro=payload.vai_tro or "CANDIDATE",
+        )
+        db.add(new_user)
+        db.commit()
+        db.refresh(new_user)
+        return new_user
+    except HTTPException:
+        raise
+    except OperationalError:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "Không thể kết nối cơ sở dữ liệu. "
+                "Vui lòng kiểm tra DATABASE_URL trong file .env."
+            ),
+        )
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Đã xảy ra lỗi trong quá trình đăng ký.",
+        )
 
 
 @router.post(

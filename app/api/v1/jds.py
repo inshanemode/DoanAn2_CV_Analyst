@@ -1,15 +1,70 @@
 import uuid
+import os
+import shutil
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.security import get_current_user
+from app.core.config import settings
 from app.models.user import User
 from app.models.job_description import JobDescription
 from app.schemas.job_description import JDCreate, JDUpdate, JDResponse
+from app.services.document_service import document_service
 
 router = APIRouter(prefix="/jds", tags=["JD Management"])
+
+
+@router.post("/upload", response_model=JDResponse, status_code=status.HTTP_201_CREATED)
+async def upload_jd_file(
+    file: UploadFile = File(...),
+    tieu_de: str | None = Form(None),
+    ten_cong_ty: str | None = Form(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Tải lên JD từ file (.pdf, .docx, .txt), trích xuất nội dung và lưu vào DB.
+    """
+    extension = os.path.splitext(file.filename or "")[1].lower()
+    if extension not in [".pdf", ".docx", ".txt"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Chỉ chấp nhận file JD định dạng .pdf, .docx hoặc .txt",
+        )
+
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    temp_filename = f"jd_{uuid.uuid4()}{extension}"
+    temp_path = os.path.join(settings.UPLOAD_DIR, temp_filename)
+
+    try:
+        with open(temp_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        extracted_text = document_service.extract_text(temp_path)
+        resolved_title = (tieu_de or os.path.splitext(file.filename or "JD Upload")[0]).strip() or "JD Upload"
+
+        new_jd = JobDescription(
+            user_id=current_user.user_id,
+            tieu_de=resolved_title,
+            ten_cong_ty=ten_cong_ty,
+            noi_dung=extracted_text,
+        )
+        db.add(new_jd)
+        db.commit()
+        db.refresh(new_jd)
+        return new_jd
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Lỗi khi xử lý file JD: {str(exc)}",
+        )
+    finally:
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
 
 
 @router.post("/", response_model=JDResponse, status_code=status.HTTP_201_CREATED)

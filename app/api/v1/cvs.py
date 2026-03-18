@@ -11,6 +11,7 @@ from app.core.security import get_current_user
 from app.models.user import User
 from app.models.cv import CV
 from app.schemas.cv import CVResponse
+from app.services.document_service import document_service
 
 router = APIRouter(prefix="/cvs", tags=["CV Management"])
 
@@ -55,6 +56,24 @@ async def upload_cv(
         trang_thai_phan_tich="PENDING"
     )
     db.add(new_cv)
+    db.commit()
+
+    try:
+        extracted_text = document_service.extract_text(file_path)
+        new_cv.du_lieu_trich_xuat = {
+            "raw_text": extracted_text,
+            "source_file": file.filename,
+            "file_path": file_path,
+        }
+        new_cv.trang_thai_phan_tich = "DONE"
+    except Exception as exc:
+        new_cv.du_lieu_trich_xuat = {
+            "error": str(exc),
+            "source_file": file.filename,
+            "file_path": file_path,
+        }
+        new_cv.trang_thai_phan_tich = "FAILED"
+
     db.commit()
     db.refresh(new_cv)
 
