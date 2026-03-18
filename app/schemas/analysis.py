@@ -1,7 +1,7 @@
 from pydantic import BaseModel, ConfigDict
 from uuid import UUID
 from datetime import datetime
-from typing import Optional, Any, List
+from typing import Optional, List
 
 
 class AnalysisRequest(BaseModel):
@@ -15,6 +15,10 @@ class AnalysisDetail(BaseModel):
     nhan_xet: str
 
 
+class AnalysisUpdate(BaseModel):
+    goi_y: str
+
+
 class AnalysisResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -22,7 +26,7 @@ class AnalysisResponse(BaseModel):
     cv_id: UUID
     jd_id: UUID
     diem_tong: Optional[float] = None
-    chi_tiet_diem: Optional[Any] = None
+    chi_tiet_diem: Optional[List[AnalysisDetail]] = None
     goi_y: Optional[str] = None
     trang_thai: str
     created_at: datetime

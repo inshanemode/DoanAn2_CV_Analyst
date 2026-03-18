@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import MainLayout from './layouts/MainLayout';
 import CvPage from './pages/CvPage';
 import JdPage from './pages/JdPage';
+import MatchingPage from './pages/MatchingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -39,12 +40,9 @@ function App() {
             
             <Route path="jds" element={<JdPage />} />
             
-            {/* Skeleton for future matching page */}
             <Route path="matching" element={
               <ProtectedRoute>
-                <div className="flex items-center justify-center h-64 w-full text-gray-500">
-                  Chức năng So khớp đang được phát triển...
-                </div>
+                <MatchingPage />
               </ProtectedRoute>
             } />
           </Route>

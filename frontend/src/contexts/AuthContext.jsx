@@ -39,6 +39,16 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('Login failed:', error);
+      const isTimeout = error.code === 'ECONNABORTED';
+      const isNetwork = error.code === 'ERR_NETWORK' || !error.response;
+
+      if (isTimeout || isNetwork) {
+        return {
+          success: false,
+          error: 'Không thể kết nối đến backend. Vui lòng kiểm tra server API và cổng đang dùng.',
+        };
+      }
+
       return { 
         success: false, 
         error: error.response?.data?.detail || 'Đăng nhập thất bại. Vui lòng thử lại.' 
@@ -84,6 +94,16 @@ export const AuthProvider = ({ children }) => {
       return await login(userData.email, userData.mat_khau);
     } catch (error) {
       console.error('Registration failed:', error);
+      const isTimeout = error.code === 'ECONNABORTED';
+      const isNetwork = error.code === 'ERR_NETWORK' || !error.response;
+
+      if (isTimeout || isNetwork) {
+        return {
+          success: false,
+          error: 'Không thể kết nối đến backend. Vui lòng kiểm tra server API và cổng đang dùng.',
+        };
+      }
+
       const errorMessage = translateError(error.response?.data?.detail);
       
       return { 

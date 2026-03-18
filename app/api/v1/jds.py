@@ -25,13 +25,13 @@ async def upload_jd_file(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Tải lên JD từ file (.pdf, .docx, .txt), trích xuất nội dung và lưu vào DB.
+    Tải lên JD từ file (.pdf, .docx), trích xuất nội dung và lưu vào DB.
     """
     extension = os.path.splitext(file.filename or "")[1].lower()
-    if extension not in [".pdf", ".docx", ".txt"]:
+    if extension not in [".pdf", ".docx"]:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Chỉ chấp nhận file JD định dạng .pdf, .docx hoặc .txt",
+            detail="Chỉ chấp nhận file JD định dạng .pdf hoặc .docx",
         )
 
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)

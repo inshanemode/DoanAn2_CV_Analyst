@@ -101,7 +101,7 @@ function JdPage() {
         <input
           ref={fileInputRef}
           type="file"
-          accept=".pdf,.docx,.txt"
+          accept=".pdf,.docx"
           className="hidden"
           onChange={handleUpload}
         />
@@ -118,6 +118,12 @@ function JdPage() {
             <svg className="w-[20px] h-[20px]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
             {uploading ? 'Đang tải...' : 'Tải JD file'}
           </button>
+        </div>
+
+        <div className="mb-4">
+          <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">
+            Chỉ hỗ trợ file PDF và Word (.docx)
+          </span>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -155,7 +161,7 @@ function JdPage() {
             </div>
             <h3 className="text-xl font-bold text-gray-900 mb-2">Chưa có dữ liệu</h3>
             <p className="text-base text-gray-500 max-w-md font-medium">
-              Hãy nhấn Tải JD file để upload JD từ PDF/DOCX/TXT.
+              Hãy nhấn Tải JD file để upload JD từ PDF hoặc Word (.docx).
             </p>
           </div>
         ) : (
