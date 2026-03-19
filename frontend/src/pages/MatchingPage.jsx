@@ -402,7 +402,9 @@ function MatchingPage() {
         )}
 
         <div className="rounded-2xl border border-black/10 bg-white p-6">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Các kết quả đã lưu cho CV này</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">
+            Các kết quả đã lưu cho CV: {(selectedCv?.du_lieu_trich_xuat?.source_file || selectedCv?.duong_dan || 'Chưa chọn CV').slice(0, 100)}
+          </h2>
           {resultHistory.length > 0 && (
             <p className="text-base text-gray-500 mb-4">
               Chọn "Xem chi tiết" để mở lại một kết quả. Khi bạn bấm "Chấm điểm" với cùng cặp CV/JD,
@@ -410,7 +412,7 @@ function MatchingPage() {
             </p>
           )}
           {resultHistory.length === 0 ? (
-            <p className="text-lg text-gray-500">Chưa có kết quả phân tích cho CV này.</p>
+            <p className="text-lg text-gray-500">Chưa có kết quả phân tích cho CV đã chọn.</p>
           ) : (
             <div className="space-y-3">
               {resultHistory.map((result) => {
