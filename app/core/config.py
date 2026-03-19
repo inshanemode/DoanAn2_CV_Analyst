@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     # Storage
     UPLOAD_DIR: str = "uploads"
 
+    # AI / LLM
+    GOOGLE_API_KEY: str | None = None
+
     class Config:
         env_file = ".env"
         case_sensitive = True

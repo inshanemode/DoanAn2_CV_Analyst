@@ -28,6 +28,11 @@ class MatchingService:
         "as", "are", "was", "were", "will", "can", "to", "of", "on", "in",
     }
 
+    _AI_UNAVAILABLE_NOTICE = (
+        "AI hiện tạm thời chưa kích hoạt hoặc đang quá tải, nên hệ thống đang chấm điểm bằng bộ quy tắc nội bộ.\n"
+        "Bạn vẫn có thể dùng kết quả này bình thường; khi AI hoạt động lại, kết quả sẽ có thêm phân tích sâu theo ngữ cảnh."
+    )
+
     _MULTILINGUAL_CONCEPTS = [
         (r"\bkinh\s*nghiệm\b", "experience"),
         (r"\bexperience\b", "experience"),
@@ -119,7 +124,14 @@ class MatchingService:
         ai_result = await self._try_ai_analysis(cv_text=cv_text, jd_text=jd_text)
         if ai_result:
             return ai_result
-        return self._rule_based_analysis(cv_text=cv_text, jd_text=jd_text)
+
+        rule_result = self._rule_based_analysis(cv_text=cv_text, jd_text=jd_text)
+        current_suggestion = (rule_result.get("goi_y") or "").strip()
+        if current_suggestion:
+            rule_result["goi_y"] = f"{self._AI_UNAVAILABLE_NOTICE}\n\n{current_suggestion}"
+        else:
+            rule_result["goi_y"] = self._AI_UNAVAILABLE_NOTICE
+        return rule_result
 
     async def _try_ai_analysis(self, cv_text: str, jd_text: str) -> dict[str, Any] | None:
         prompt = f"""
@@ -191,7 +203,12 @@ Quy tắc xuất:
 - Nếu thiếu dữ liệu thì ghi rõ "không thấy bằng chứng" thay vì tự suy diễn.
 """.strip()
 
-        ai_response = await gemini_service.generate_content(prompt)
+        try:
+            ai_response = await gemini_service.generate_content(prompt)
+        except Exception as exc:
+            print(f"[MatchingService] AI analysis failed, fallback to rule-based: {exc}")
+            return None
+
         if not ai_response or "temporarily disabled" in ai_response.lower():
             return None
 

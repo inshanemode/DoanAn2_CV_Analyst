@@ -143,4 +143,36 @@
   .mac-button:hover {
     background: #005ecb;
   }
+
+  .modern-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(120, 128, 140, 0.6) transparent;
+  }
+
+  .modern-scrollbar::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  .modern-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .modern-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(120, 128, 140, 0.45);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  .modern-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(92, 99, 112, 0.68);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+
+  .modern-scrollbar::-webkit-scrollbar-corner {
+    background: transparent;
+  }
 }

@@ -50,10 +50,13 @@ async def analyze_cv_matching(
         )
     except ValueError as error:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error))
-    except Exception:
+    except Exception as e:
+        import traceback
+
+        traceback.print_exc()
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Không thể hoàn tất phân tích CV/JD.",
+            detail=str(e),
         )
 
 

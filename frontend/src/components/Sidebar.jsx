@@ -33,10 +33,27 @@ function Sidebar() {
       </div>
       
       <div className="mt-auto px-2 border-t border-black/5 pt-4">
-          <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-base mac-subtitle font-medium hover:bg-black/5 hover:text-black transition-all duration-250">
-            <div className="w-[24px] h-[24px] rounded-full bg-black/10"></div>
-            <span className="truncate font-bold text-[#1d1d1f]">Admin User</span>
-          </button>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 mb-2">Hướng dẫn nhanh</h3>
+        <div className="bg-white rounded-xl border border-black/10 p-3 text-sm text-gray-700">
+          <div className="grid grid-cols-1 gap-2">
+            <div className="flex items-start gap-2">
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-50 text-blue-700 text-xs font-bold">1</span>
+              <span>Upload CV trong mục <strong>Hồ sơ (CV)</strong>.</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-50 text-blue-700 text-xs font-bold">2</span>
+              <span>Upload JD trong mục <strong>Công việc (JD)</strong>.</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-50 text-blue-700 text-xs font-bold">3</span>
+              <span>Vào <strong>Phân tích &amp; So khớp</strong>, chọn CV + JD và bấm <strong>Chấm điểm</strong>.</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-blue-50 text-blue-700 text-xs font-bold">4</span>
+              <span>Xem kết quả trong mục lịch sử, bấm <strong>Xem chi tiết</strong> để mở.</span>
+            </div>
+          </div>
+        </div>
       </div>
     </aside>
   );
