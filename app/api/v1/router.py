@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.api.v1 import auth, users, ai, cvs, jds, analysis
+from app.api.v1 import auth, users, ai, cvs, jds, analysis, chat
 
 api_router = APIRouter()
 
@@ -9,3 +9,4 @@ api_router.include_router(ai.router, prefix="/ai", tags=["ai"])
 api_router.include_router(cvs.router, tags=["cvs"])
 api_router.include_router(jds.router, tags=["jds"])
 api_router.include_router(analysis.router, tags=["analysis"])
+api_router.include_router(chat.router, tags=["chat"])

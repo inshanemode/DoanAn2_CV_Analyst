@@ -1,7 +1,11 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import api from '../services/api';
+import { useChatContext } from '../contexts/ChatContext';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 function MatchingPage() {
+  const { setResultId, setChatContext } = useChatContext();
   const [cvs, setCvs] = useState([]);
   const [jds, setJds] = useState([]);
   const [selectedCvId, setSelectedCvId] = useState('');
@@ -111,6 +115,13 @@ function MatchingPage() {
 
       const response = await api.post('/analysis/', payload, { timeout: 120000 });
       setLatestResult(response.data);
+      if (response.data?.result_id) {
+        setChatContext({
+          resultId: response.data.result_id,
+          cvLabel: selectedCv?.du_lieu_trich_xuat?.source_file || selectedCv?.duong_dan || '',
+          jdTitle: selectedJd?.tieu_de || '',
+        });
+      }
       if (response.data?.trang_thai === 'PROCESSING') {
         setSuccess('Hệ thống đang xử lý, sẽ tự động cập nhật khi có kết quả...');
         const done = await pollAnalysisResult(selectedCvId, selectedJdId, startedAt);
@@ -162,7 +173,14 @@ function MatchingPage() {
           samePair[0];
 
         if (targetResult && targetResult.trang_thai === 'COMPLETED') {
+          const resultCv = cvs.find((item) => item.cv_id === targetResult.cv_id);
+          const resultJd = jds.find((item) => item.jd_id === targetResult.jd_id);
           setLatestResult(targetResult);
+          setChatContext({
+            resultId: targetResult.result_id,
+            cvLabel: resultCv?.du_lieu_trich_xuat?.source_file || resultCv?.duong_dan || '',
+            jdTitle: resultJd?.tieu_de || '',
+          });
           setSuccess('Phân tích hoàn tất. Kết quả đã tự động cập nhật.');
           return true;
         }
@@ -189,6 +207,7 @@ function MatchingPage() {
     if (readInfo?.resultId === resultId) {
       setReadInfo(null);
       setLatestResult(null);
+      setResultId(null);
       setError('');
       setSuccess('');
       return;
@@ -203,6 +222,12 @@ function MatchingPage() {
 
       const cv = cvs.find((item) => item.cv_id === result.cv_id);
       const jd = jds.find((item) => item.jd_id === result.jd_id);
+
+      setChatContext({
+        resultId: result.result_id,
+        cvLabel: cv?.du_lieu_trich_xuat?.source_file || cv?.duong_dan || '',
+        jdTitle: jd?.tieu_de || '',
+      });
 
       const cvRawText = cv?.du_lieu_trich_xuat?.raw_text || '';
       const jdRawText = jd?.noi_dung || '';
@@ -363,7 +388,20 @@ function MatchingPage() {
 
             <div className="rounded-xl bg-black/[0.03] px-4 py-3">
               <p className="text-lg font-semibold text-gray-700 mb-1">Gợi ý cải thiện</p>
-              <p className="text-base text-gray-600 whitespace-pre-line">{latestResult.goi_y || 'Không có gợi ý.'}</p>
+              <div className="text-base text-gray-600">
+                <ReactMarkdown
+                  remarkPlugins={[remarkGfm]}
+                  components={{
+                    p: ({ children }) => <p className="mb-2 last:mb-0 whitespace-pre-line">{children}</p>,
+                    ul: ({ children }) => <ul className="list-disc pl-5 mb-2 last:mb-0">{children}</ul>,
+                    ol: ({ children }) => <ol className="list-decimal pl-5 mb-2 last:mb-0">{children}</ol>,
+                    li: ({ children }) => <li className="mb-1 last:mb-0">{children}</li>,
+                    strong: ({ children }) => <strong className="font-semibold">{children}</strong>,
+                  }}
+                >
+                  {latestResult.goi_y || 'Không có gợi ý.'}
+                </ReactMarkdown>
+              </div>
             </div>
           </div>
         )}
@@ -375,6 +413,7 @@ function MatchingPage() {
               onClick={() => {
                 setReadInfo(null);
                 setLatestResult(null);
+                setResultId(null);
                 setError('');
                 setSuccess('');
               }}
@@ -477,6 +516,7 @@ function MatchingPage() {
           </p>
         )}
       </div>
+
     </>
   );
 }
