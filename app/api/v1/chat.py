@@ -145,4 +145,40 @@ async def chat(
             "Ban co the thu lai sau it phut hoac xem goi y trong ket qua phan tich."
         )
 
+    # Luu lich su chat vao DB
+    try:
+        from app.models.chat import ChatSession
+
+        all_messages = [
+            *[msg.model_dump() for msg in payload.history],
+            {"role": "user", "content": payload.message},
+            {"role": "assistant", "content": reply},
+        ]
+
+        existing_session = None
+        # Tim session hien tai neu co (dua vao result_id + user)
+        if payload.result_id:
+            existing_session = (
+                db.query(ChatSession)
+                .filter(
+                    ChatSession.user_id == current_user.user_id,
+                    ChatSession.result_id == payload.result_id,
+                )
+                .first()
+            )
+
+        if existing_session:
+            existing_session.messages = all_messages
+            db.commit()
+        else:
+            new_session = ChatSession(
+                user_id=current_user.user_id,
+                result_id=payload.result_id,
+                messages=all_messages,
+            )
+            db.add(new_session)
+            db.commit()
+    except Exception as exc:
+        print(f"[Chat] Khong the luu lich su chat: {exc}")
+
     return ChatResponse(reply=reply)

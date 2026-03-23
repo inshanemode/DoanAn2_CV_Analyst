@@ -4,6 +4,7 @@ import MainLayout from './layouts/MainLayout';
 import CvPage from './pages/CvPage';
 import JdPage from './pages/JdPage';
 import MatchingPage from './pages/MatchingPage';
+import AdminPage from './pages/AdminPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
@@ -45,6 +46,12 @@ function App() {
               <Route path="matching" element={
                 <ProtectedRoute>
                   <MatchingPage />
+                </ProtectedRoute>
+              } />
+
+              <Route path="admin" element={
+                <ProtectedRoute>
+                  <AdminPage />
                 </ProtectedRoute>
               } />
             </Route>
