@@ -19,6 +19,14 @@ function ChatIcon() {
   );
 }
 
+function ImageIcon() {
+  return (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.6-4.6a2 2 0 012.8 0L16 16m-2-2 1.6-1.6a2 2 0 012.8 0L20 14m-16 6h16a2 2 0 002-2V6a2 2 0 00-2-2H4a2 2 0 00-2 2v12a2 2 0 002 2zm4-12h.01" />
+    </svg>
+  );
+}
+
 // Mot bong bong tin nhan
 function MessageBubble({ msg }) {
   const isUser = msg.role === 'user';
@@ -96,9 +104,11 @@ export default function ChatBox() {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [hasUnread, setHasUnread] = useState(false);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
+  const imageInputRef = useRef(null);
 
   // Tu cuon xuong cuoi khi co tin nhan moi
   useEffect(() => {
@@ -117,7 +127,7 @@ export default function ChatBox() {
 
   const sendMessage = async (text) => {
     const messageText = text || input.trim();
-    if (!messageText || loading) return;
+    if (!messageText || loading || (!text && uploadingImage)) return;
 
     const userMsg = { role: 'user', content: messageText };
     const newMessages = [...messages, userMsg];
@@ -155,6 +165,43 @@ export default function ChatBox() {
       ]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleImageUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file || loading || uploadingImage) return;
+
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await api.post('/ocr/image', formData);
+      const extractedText = response.data?.text?.trim();
+
+      if (!extractedText) {
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'assistant',
+            content: 'Mình chưa đọc được chữ trong ảnh này. Bạn thử ảnh rõ hơn hoặc crop sát phần văn bản nhé.',
+          },
+        ]);
+        return;
+      }
+
+      await sendMessage(`Nội dung chữ trích xuất từ ảnh "${file.name}":\n\n${extractedText}`);
+    } catch (apiError) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'assistant',
+          content: apiError.response?.data?.detail || 'Không đọc được chữ từ ảnh. Vui lòng thử lại sau.',
+        },
+      ]);
+    } finally {
+      setUploadingImage(false);
+      event.target.value = '';
     }
   };
 
@@ -252,21 +299,37 @@ export default function ChatBox() {
 
           {/* O nhap lieu */}
           <div className="px-3 py-3 border-t border-black/5 bg-white flex-shrink-0">
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageUpload}
+            />
             <div className="flex gap-2 items-end">
+              <button
+                type="button"
+                onClick={() => imageInputRef.current?.click()}
+                disabled={loading || uploadingImage}
+                title="Gửi ảnh để đọc chữ"
+                className="w-10 h-10 rounded-xl border border-black/10 text-gray-600 flex items-center justify-center hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+              >
+                <ImageIcon />
+              </button>
               <textarea
                 ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Nhập câu hỏi... (Enter để gửi)"
+                placeholder={uploadingImage ? 'Đang đọc chữ từ ảnh...' : 'Nhập câu hỏi... (Enter để gửi)'}
                 rows={1}
-                disabled={loading}
+                disabled={loading || uploadingImage}
                 className="flex-1 resize-none rounded-xl border border-black/10 px-3 py-2.5 text-sm outline-none focus:border-blue-400 disabled:opacity-50 max-h-28 overflow-y-auto modern-scrollbar"
                 style={{ lineHeight: '1.5' }}
               />
               <button
                 onClick={() => sendMessage()}
-                disabled={!input.trim() || loading}
+                disabled={!input.trim() || loading || uploadingImage}
                 className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

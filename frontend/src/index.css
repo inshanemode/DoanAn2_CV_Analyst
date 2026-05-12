@@ -2,151 +2,313 @@
 
 @layer base {
   :root {
-    font-size: 18px;
-    /* Tăng từ mặc định browser lên 18px để mọi thứ to ra */
+    font-size: 16px;
+    color-scheme: light;
+    --ink: #07152b;
+    --muted: #596274;
+    --line: #dce4f3;
+    --soft: #f4f7fd;
+    --soft-blue: #eaf1ff;
+    --brand: #0b45d9;
+    --brand-dark: #0732a8;
+    --cyan: #15d4ee;
+  }
+
+  * {
+    box-sizing: border-box;
   }
 
   body {
     margin: 0;
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", "Inter", "Segoe UI", sans-serif;
+    min-height: 100vh;
+    background: #f8fafd;
+    color: var(--ink);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    line-height: 1.5;
+    letter-spacing: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    font-size: 1rem;
-    /* 16px */
-    line-height: 1.6;
-    letter-spacing: -0.01em;
-    /* Apple dùng letter-spacing âm nhẹ */
-
-    background: #E6E6E6;
-    background-attachment: fixed;
-    color: #1d1d1f;
-    min-height: 100vh;
   }
 
-  /* Heading scale kiểu Apple */
-  h1 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1.2;
+  h1,
+  h2,
+  h3,
+  p {
+    margin: 0;
   }
 
-  h2 {
-    font-size: 1.375rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
-    line-height: 1.3;
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
   }
-
-  h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    letter-spacing: -0.015em;
-    line-height: 1.4;
-  }
-
-  /* Label nhỏ / caption */
-  small,
-  .text-xs {
-    font-size: 0.8125rem;
-  }
-
-  /* 13px — Apple dùng cho caption */
 }
 
-@layer utilities {
-
-  /* Glass container (card kính) */
-  .mac-glass {
-    backdrop-filter: blur(20px);
-    background: rgba(255, 255, 255, 0.7);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+@layer components {
+  .app-shell {
+    min-height: 100vh;
+    background:
+      linear-gradient(180deg, #f7f9fd 0%, #ffffff 42%),
+      #ffffff;
   }
 
-  /* Glass navbar header */
-  .mac-glass-nav {
-    backdrop-filter: blur(30px);
-    background: rgba(255, 255, 255, 0.5);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+  .topbar {
+    height: 76px;
+    border-bottom: 1px solid var(--line);
+    background: rgba(249, 251, 255, 0.96);
   }
 
-  /* Sidebar */
-  .mac-sidebar {
-    backdrop-filter: blur(20px);
-    background: rgba(255, 255, 255, 0.85);
-    border-right: 1px solid rgba(0, 0, 0, 0.06);
-  }
-
-  /* Card thống kê */
-  .mac-stat-card {
-    background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    border-radius: 14px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-  }
-
-  /* Typography */
-  .mac-title {
-    color: #1d1d1f;
-    font-weight: 600;
+  .brand-mark {
+    color: #0b3fc7;
+    font-weight: 800;
     letter-spacing: -0.02em;
   }
 
-  .mac-subtitle {
-    color: #6e6e73;
-    font-size: 0.9375rem;
-    /* 15px */
+  .nav-link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    height: 44px;
+    padding: 0 18px;
+    color: #20283a;
+    font-weight: 500;
+    text-decoration: none;
   }
 
-  /* Label sidebar section (QUẢN LÝ, TÍNH NĂNG) */
-  .mac-section-label {
-    font-size: 0.6875rem;
-    /* 11px */
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #6e6e73;
+  .nav-link:hover {
+    color: var(--brand);
   }
 
-  /* Stat number lớn */
-  .mac-stat-number {
-    font-size: 2rem;
+  .nav-link-active {
+    color: var(--brand);
     font-weight: 700;
-    letter-spacing: -0.04em;
-    color: #0071e3;
-    line-height: 1;
   }
 
-  /* Stat label */
-  .mac-stat-label {
-    font-size: 0.8125rem;
-    /* 13px */
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    text-transform: uppercase;
-    color: #6e6e73;
+  .nav-link-active::after {
+    content: "";
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: -1px;
+    height: 2px;
+    border-radius: 999px;
+    background: var(--brand);
   }
 
-  /* Accent Button */
-  .mac-button {
-    background: #0071e3;
+  .search-shell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 54px;
+    width: min(34vw, 370px);
+    min-width: 240px;
+    border-radius: 999px;
+    border: 1px solid #d8e1f3;
+    background: #eef4ff;
+    color: #222b3d;
+    padding: 0 20px;
+  }
+
+  .page-wrap {
+    width: 100%;
+    margin: 0;
+    padding: 62px 38px 72px;
+  }
+
+  .workspace-grid {
+    display: grid;
+    grid-template-columns: minmax(420px, 580px) minmax(0, 1fr);
+    gap: 28px;
+    align-items: stretch;
+  }
+
+  .panel {
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    background: #ffffff;
+    box-shadow: 0 16px 34px rgba(17, 35, 70, 0.06);
+  }
+
+  .panel-flat {
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: #ffffff;
+  }
+
+  .source-panel {
+    min-height: 620px;
+    overflow: hidden;
+    background: #e8f1ff;
+  }
+
+  .source-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 20px 22px;
+    border-bottom: 1px solid var(--line);
+    background: #fbfcff;
+  }
+
+  .source-canvas {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 560px;
+    padding: 42px;
+    background: #e4eefc;
+  }
+
+  .scan-frame {
+    position: relative;
+    width: min(100%, 430px);
+    min-height: 520px;
+    border: 1px solid var(--cyan);
+    border-radius: 14px;
+    background: rgba(222, 244, 255, 0.64);
+    box-shadow: inset 0 -90px 90px rgba(21, 212, 238, 0.09);
+  }
+
+  .scan-frame::before,
+  .scan-frame::after {
+    content: "";
+    position: absolute;
+    left: -5px;
+    right: -5px;
+    height: 18px;
+    border-color: var(--cyan);
+    pointer-events: none;
+  }
+
+  .scan-frame::before {
+    top: -5px;
+    border-top: 2px solid;
+  }
+
+  .scan-frame::after {
+    bottom: -5px;
+    border-bottom: 2px solid;
+  }
+
+  .scan-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    height: 2px;
+    background: var(--cyan);
+    box-shadow: 0 0 20px rgba(21, 212, 238, 0.8);
+  }
+
+  .section-title {
+    font-size: clamp(2rem, 3vw, 2.8rem);
+    line-height: 1.12;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+
+  .subtle {
+    color: var(--muted);
+  }
+
+  .btn-primary,
+  .btn-soft,
+  .btn-danger,
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 42px;
+    border-radius: 999px;
+    padding: 0 22px;
+    font-weight: 700;
+    border: 1px solid transparent;
+    transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+  }
+
+  .btn-primary {
+    background: var(--brand);
     color: white;
-    border-radius: 10px;
-    font-size: 0.9375rem;
-    /* 15px */
-    font-weight: 500;
-    letter-spacing: -0.01em;
+    box-shadow: 0 9px 18px rgba(11, 69, 217, 0.18);
   }
 
-  .mac-button:hover {
-    background: #005ecb;
+  .btn-primary:hover {
+    background: var(--brand-dark);
+  }
+
+  .btn-soft {
+    background: #eef4ff;
+    color: #1d2840;
+    border-color: #d8e1f3;
+  }
+
+  .btn-soft:hover {
+    border-color: #bfd0ef;
+  }
+
+  .btn-danger {
+    background: #fff1f2;
+    color: #be123c;
+    border-color: #fecdd3;
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: #334155;
+    border-color: var(--line);
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border-radius: 999px;
+    border: 1px solid #d8e1f3;
+    background: #eef4ff;
+    color: #1f2a44;
+    padding: 6px 14px;
+    font-size: 0.875rem;
+    font-weight: 600;
+  }
+
+  .metric-card {
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    background: #ffffff;
+    padding: 24px;
+    box-shadow: 0 12px 24px rgba(17, 35, 70, 0.05);
+  }
+
+  .input-control {
+    width: 100%;
+    min-height: 46px;
+    border: 1px solid #d8e1f3;
+    border-radius: 14px;
+    background: #ffffff;
+    padding: 0 16px;
+    color: var(--ink);
+    outline: none;
+  }
+
+  .input-control:focus {
+    border-color: #8db2ff;
+    box-shadow: 0 0 0 4px rgba(11, 69, 217, 0.08);
+  }
+
+  .table-wrap {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: white;
   }
 
   .modern-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: rgba(120, 128, 140, 0.6) transparent;
+    scrollbar-color: rgba(123, 137, 164, 0.55) transparent;
   }
 
   .modern-scrollbar::-webkit-scrollbar {
@@ -154,25 +316,40 @@
     height: 10px;
   }
 
-  .modern-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
   .modern-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(120, 128, 140, 0.45);
-    border-radius: 999px;
+    background: rgba(123, 137, 164, 0.45);
     border: 2px solid transparent;
+    border-radius: 999px;
     background-clip: content-box;
   }
 
-  .modern-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(92, 99, 112, 0.68);
-    border-radius: 999px;
-    border: 2px solid transparent;
-    background-clip: content-box;
-  }
+  @media (max-width: 1050px) {
+    .topbar {
+      height: auto;
+    }
 
-  .modern-scrollbar::-webkit-scrollbar-corner {
-    background: transparent;
+    .search-shell {
+      display: none;
+    }
+
+    .page-wrap {
+      padding: 30px 18px 56px;
+    }
+
+    .workspace-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .source-panel {
+      min-height: auto;
+    }
+
+    .source-canvas {
+      min-height: 360px;
+    }
+
+    .scan-frame {
+      min-height: 340px;
+    }
   }
 }

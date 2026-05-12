@@ -11,7 +11,7 @@ from app.core.config import settings
 from app.models.user import User
 from app.models.job_description import JobDescription
 from app.schemas.job_description import JDCreate, JDUpdate, JDResponse
-from app.services.document_service import document_service
+from app.services.document_service import IMAGE_EXTENSIONS, document_service
 
 router = APIRouter(prefix="/jds", tags=["JD Management"])
 
@@ -28,10 +28,11 @@ async def upload_jd_file(
     Tải lên JD từ file (.pdf, .docx), trích xuất nội dung và lưu vào DB.
     """
     extension = os.path.splitext(file.filename or "")[1].lower()
-    if extension not in [".pdf", ".docx"]:
+    allowed_extensions = [".pdf", ".docx", *sorted(IMAGE_EXTENSIONS)]
+    if extension not in allowed_extensions:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Chỉ chấp nhận file JD định dạng .pdf hoặc .docx",
+            detail="Chỉ chấp nhận file JD định dạng .pdf, .docx hoặc ảnh .jpg, .png, .webp, .bmp, .tif",
         )
 
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
@@ -42,7 +43,7 @@ async def upload_jd_file(
         with open(temp_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
 
-        extracted_text = document_service.extract_text(temp_path)
+        extracted_text = await document_service.extract_text_async(temp_path)
         resolved_title = (tieu_de or os.path.splitext(file.filename or "JD Upload")[0]).strip() or "JD Upload"
 
         new_jd = JobDescription(

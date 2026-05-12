@@ -11,7 +11,7 @@ from app.core.security import get_current_user
 from app.models.user import User
 from app.models.cv import CV
 from app.schemas.cv import CVResponse
-from app.services.document_service import document_service
+from app.services.document_service import IMAGE_EXTENSIONS, document_service
 
 router = APIRouter(prefix="/cvs", tags=["CV Management"])
 
@@ -30,10 +30,11 @@ async def upload_cv(
     """
     # Validation: File extension
     ext = os.path.splitext(file.filename)[1].lower()
-    if ext not in [".pdf", ".docx"]:
+    allowed_extensions = [".pdf", ".docx", *sorted(IMAGE_EXTENSIONS)]
+    if ext not in allowed_extensions:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Chỉ chấp nhận file định dạng .pdf hoặc .docx"
+            detail="Chỉ chấp nhận file định dạng .pdf, .docx hoặc ảnh .jpg, .png, .webp, .bmp, .tif"
         )
 
     # Generate unique filename
@@ -59,11 +60,12 @@ async def upload_cv(
     db.commit()
 
     try:
-        extracted_text = document_service.extract_text(file_path)
+        extracted_text = await document_service.extract_text_async(file_path)
         new_cv.du_lieu_trich_xuat = {
             "raw_text": extracted_text,
             "source_file": file.filename,
             "file_path": file_path,
+            "source_type": "image" if ext in IMAGE_EXTENSIONS else "document",
         }
         new_cv.trang_thai_phan_tich = "DONE"
     except Exception as exc:

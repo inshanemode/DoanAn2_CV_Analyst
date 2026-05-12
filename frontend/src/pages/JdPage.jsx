@@ -1,31 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../services/api';
-
-// Common Stats Component duplicated for demo (can be moved to a shared component later)
-const StatsRow = ({ stats }) => (
-  <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-7">
-    <div className="mac-glass rounded-2xl p-[24px] transition-transform duration-300 hover:-translate-y-1 cursor-default">
-      <div className="text-lg font-bold text-gray-500 mb-2 uppercase tracking-wide">Tổng Số CV</div>
-      <div className="text-5xl md:text-6xl font-bold text-blue-600 tracking-tight">{stats.totalCvs}</div>
-    </div>
-    <div className="mac-glass rounded-2xl p-[24px] transition-transform duration-300 hover:-translate-y-1 cursor-default">
-      <div className="text-lg font-bold text-gray-500 mb-2 uppercase tracking-wide">Công Việc (JD)</div>
-      <div className="text-5xl md:text-6xl font-bold text-blue-600 tracking-tight">{stats.totalJds}</div>
-    </div>
-    <div className="mac-glass rounded-2xl p-[24px] transition-transform duration-300 hover:-translate-y-1 cursor-default">
-      <div className="text-lg font-bold text-gray-500 mb-2 uppercase tracking-wide">Đã Phân Tích</div>
-      <div className="text-5xl md:text-6xl font-bold text-blue-600 tracking-tight">{stats.analyzed}</div>
-    </div>
-  </div>
-);
 
 function JdPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-
   const [jds, setJds] = useState([]);
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -34,12 +15,6 @@ function JdPage() {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
-  const stats = {
-    totalCvs: 0,
-    totalJds: jds.length,
-    analyzed: 0,
-  };
 
   const fetchJds = async () => {
     if (!user) return;
@@ -55,43 +30,29 @@ function JdPage() {
     fetchJds();
   }, [user]);
 
-  const handleDeleteJd = async (jdId) => {
-    const confirmed = window.confirm('Bạn có chắc muốn xóa JD này?');
-    if (!confirmed) return;
-
-    setError('');
-    setSuccess('');
-    try {
-      await api.delete(`/jds/${jdId}`);
-      setSuccess('Đã xóa JD.');
-      await fetchJds();
-    } catch (apiError) {
-      setError(apiError.response?.data?.detail || 'Không thể xóa JD.');
+  const handleAction = () => {
+    if (!user) {
+      navigate('/login', { state: { from: location } });
+      return;
     }
+    setShowUploadForm((prev) => !prev);
   };
 
   const handleUpload = async (event) => {
     event.preventDefault();
-
     if (!selectedFile) {
-      setError('Vui lòng chọn file JD (.pdf hoặc .docx).');
+      setError('Vui lòng chọn file JD (.pdf, .docx hoặc ảnh).');
       return;
     }
 
+    setUploading(true);
     setError('');
     setSuccess('');
-    setUploading(true);
-
     try {
       const formData = new FormData();
       formData.append('file', selectedFile);
-      if (title.trim()) {
-        formData.append('tieu_de', title.trim());
-      }
-      if (company.trim()) {
-        formData.append('ten_cong_ty', company.trim());
-      }
-
+      if (title.trim()) formData.append('tieu_de', title.trim());
+      if (company.trim()) formData.append('ten_cong_ty', company.trim());
       await api.post('/jds/upload', formData);
       setSuccess('Tải JD thành công.');
       setShowUploadForm(false);
@@ -106,153 +67,132 @@ function JdPage() {
     }
   };
 
-  const handleAction = () => {
-    if (!user) {
-      navigate('/login', { state: { from: location } });
-      return;
-    }
+  const handleDeleteJd = async (jdId) => {
+    if (!window.confirm('Bạn có chắc muốn xóa JD này?')) return;
     setError('');
     setSuccess('');
-    setShowUploadForm((prev) => !prev);
-  };
-
-  const handleCancelUpload = () => {
-    setShowUploadForm(false);
-    setSelectedFile(null);
-    setTitle('');
-    setCompany('');
-    setError('');
+    try {
+      await api.delete(`/jds/${jdId}`);
+      setSuccess('Đã xóa JD.');
+      await fetchJds();
+    } catch (apiError) {
+      setError(apiError.response?.data?.detail || 'Không thể xóa JD.');
+    }
   };
 
   return (
-    <>
-      <StatsRow stats={stats} />
+    <div className="workspace-grid">
+      <section className="panel source-panel">
+        <div className="source-head">
+          <div>
+            <h2 className="text-xl font-extrabold">Archive</h2>
+            <p className="subtle text-sm">Job descriptions repository</p>
+          </div>
+          <span className="chip">{jds.length} records</span>
+        </div>
+        <div className="source-canvas">
+          <div className="w-full max-w-[430px] space-y-4">
+            {jds.slice(0, 4).map((jd, index) => (
+              <div key={jd.jd_id} className="rounded-2xl border border-[#d8e1f3] bg-white/80 p-5 shadow-sm">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="font-extrabold">{jd.tieu_de}</p>
+                    <p className="subtle mt-1 text-sm">{jd.ten_cong_ty || 'Chưa có công ty'}</p>
+                  </div>
+                  <span className="rounded-full bg-[#eef4ff] px-3 py-1 text-xs font-bold text-[#0b45d9]">JD-{index + 1}</span>
+                </div>
+              </div>
+            ))}
+            {jds.length === 0 && (
+              <div className="scan-frame flex items-center justify-center">
+                <p className="subtle font-semibold">Upload JD để bắt đầu</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
 
-      <div className="mac-glass rounded-[20px] p-[32px] min-h-[520px] flex flex-col text-base md:text-lg">
-        <div className="flex justify-between items-center mb-8 border-b border-black/5 pb-5">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-gray-900">
-            Mô tả công việc (Job Descriptions)
-          </h1>
-          <button
-            onClick={handleAction}
-            disabled={uploading}
-            className="mac-button px-6 py-3 text-lg font-bold transition-colors shadow-sm flex items-center gap-3 disabled:opacity-60"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
-            {showUploadForm ? 'Ẩn form tải JD' : 'Tải JD file'}
+      <section className="flex flex-col gap-7">
+        <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h1 className="section-title">Job Description Archive</h1>
+            <p className="subtle mt-3 text-lg">Lưu trữ JD để phục vụ phân tích và so khớp ứng viên.</p>
+          </div>
+          <button onClick={handleAction} disabled={uploading} className="btn-primary">
+            {showUploadForm ? 'Ẩn form' : 'Upload JD'}
           </button>
         </div>
 
-        <div className="mb-4">
-          <span className="inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-base font-medium text-blue-700">
-            Chỉ hỗ trợ file PDF và Word (.docx)
-          </span>
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
+          <div className="metric-card">
+            <p className="subtle text-sm font-bold uppercase">Tổng JD</p>
+            <p className="mt-2 text-5xl font-extrabold text-[#0b45d9]">{jds.length}</p>
+          </div>
+          <div className="metric-card">
+            <p className="subtle text-sm font-bold uppercase">Nguồn</p>
+            <p className="mt-4 text-2xl font-extrabold">PDF / DOCX / Image</p>
+          </div>
+          <div className="metric-card">
+            <p className="subtle text-sm font-bold uppercase">Sẵn sàng</p>
+            <p className="mt-2 text-5xl font-extrabold text-[#15b8d4]">{jds.length}</p>
+          </div>
         </div>
 
         {showUploadForm && (
-          <form onSubmit={handleUpload} className="rounded-2xl border border-black/10 bg-white p-6 mb-5 space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900">Form tải tài liệu JD</h2>
-
-            <div>
-              <label className="block text-base font-semibold text-gray-700 mb-2">Tài liệu JD (.pdf, .docx)</label>
-              <input
-                type="file"
-                accept=".pdf,.docx"
-                onChange={(event) => setSelectedFile(event.target.files?.[0] || null)}
-                className="w-full rounded-xl border border-black/10 px-4 py-3 bg-white text-base outline-none focus:border-blue-400"
-              />
-              {selectedFile && (
-                <p className="mt-2 text-sm text-gray-600">Đã chọn: {selectedFile.name}</p>
-              )}
+          <form onSubmit={handleUpload} className="panel p-6">
+            <h2 className="text-2xl font-extrabold">Tải tài liệu JD</h2>
+            <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-slate-700">Tên JD</span>
+                <input value={title} onChange={(event) => setTitle(event.target.value)} className="input-control" placeholder="Backend Python Developer" />
+              </label>
+              <label className="block">
+                <span className="mb-2 block text-sm font-bold text-slate-700">Tên công ty</span>
+                <input value={company} onChange={(event) => setCompany(event.target.value)} className="input-control" placeholder="ABC Tech" />
+              </label>
+              <label className="block md:col-span-2">
+                <span className="mb-2 block text-sm font-bold text-slate-700">Tài liệu JD</span>
+                <input type="file" accept=".pdf,.docx,image/*" onChange={(event) => setSelectedFile(event.target.files?.[0] || null)} className="input-control py-3" />
+              </label>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-base font-semibold text-gray-700 mb-2">Tên JD (tuỳ chọn)</label>
-                <input
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
-                  placeholder="Ví dụ: Backend Python Developer"
-                  className="w-full rounded-xl border border-black/10 px-5 py-4 text-lg outline-none focus:border-blue-400"
-                />
-              </div>
-              <div>
-                <label className="block text-base font-semibold text-gray-700 mb-2">Tên công ty (tuỳ chọn)</label>
-                <input
-                  value={company}
-                  onChange={(event) => setCompany(event.target.value)}
-                  placeholder="Ví dụ: ABC Tech"
-                  className="w-full rounded-xl border border-black/10 px-5 py-4 text-lg outline-none focus:border-blue-400"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-3">
-              <button
-                type="submit"
-                disabled={uploading}
-                className="inline-flex items-center rounded-full bg-blue-600 px-6 py-3 text-base font-semibold text-white hover:bg-blue-700 disabled:opacity-60"
-              >
-                {uploading ? 'Đang tải...' : 'Xác nhận tải lên'}
-              </button>
-              <button
-                type="button"
-                onClick={handleCancelUpload}
-                disabled={uploading}
-                className="inline-flex items-center rounded-full bg-gray-100 px-6 py-3 text-base font-semibold text-gray-700 hover:bg-gray-200 disabled:opacity-60"
-              >
-                Hủy
-              </button>
+            <div className="mt-5 flex gap-3">
+              <button type="submit" disabled={uploading} className="btn-primary">{uploading ? 'Đang tải...' : 'Xác nhận'}</button>
+              <button type="button" onClick={() => setShowUploadForm(false)} className="btn-soft">Hủy</button>
             </div>
           </form>
         )}
 
-        {error && (
-          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-red-600 text-lg">
-            {error}
-          </div>
-        )}
-        {success && (
-          <div className="mb-4 rounded-xl border border-green-200 bg-green-50 px-5 py-4 text-green-700 text-lg">
-            {success}
-          </div>
-        )}
+        {error && <div className="rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-rose-700">{error}</div>}
+        {success && <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-700">{success}</div>}
 
-        {jds.length === 0 ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-14 border border-dashed border-black/10 rounded-2xl bg-black/[0.02] hover:bg-black/[0.04] transition-colors cursor-pointer group" onClick={handleAction}>
-            <div className="w-20 h-20 rounded-full bg-black/5 flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-250 shadow-sm border border-black/5">
-              <svg className="w-10 h-10 mac-subtitle group-hover:text-[#0071e3] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-              </svg>
-            </div>
-            <h3 className="text-3xl font-bold text-gray-900 mb-3">Chưa có dữ liệu</h3>
-            <p className="text-xl text-gray-500 max-w-2xl font-medium">
-              Hãy nhấn Tải JD file để mở form, nhập thông tin và xác nhận tải tài liệu JD.
-            </p>
+        <div className="panel p-6">
+          <div className="mb-5 flex items-center justify-between">
+            <h2 className="text-2xl font-extrabold">Danh sách JD</h2>
+            <span className="chip">Archive</span>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {jds.map((jd) => (
-              <div key={jd.jd_id} className="rounded-2xl border border-black/10 bg-white px-6 py-5 flex items-center justify-between gap-5">
-                <div className="min-w-0">
-                  <p className="text-xl font-semibold text-gray-900 truncate">{jd.tieu_de}</p>
-                  <p className="text-base text-gray-500 truncate">{jd.ten_cong_ty || 'Không có công ty'}</p>
-                  <p className="text-base text-gray-400">ID: {jd.jd_id}</p>
+
+          {jds.length === 0 ? (
+            <button onClick={handleAction} className="w-full rounded-[20px] border border-dashed border-[#b9c9e7] bg-[#f4f8ff] px-8 py-16 text-center">
+              <p className="text-2xl font-extrabold">Chưa có mô tả công việc</p>
+              <p className="subtle mt-2">Nhấn để upload JD đầu tiên.</p>
+            </button>
+          ) : (
+            <div className="space-y-3">
+              {jds.map((jd) => (
+                <div key={jd.jd_id} className="flex flex-col gap-4 rounded-2xl border border-[#dce4f3] bg-white px-5 py-4 md:flex-row md:items-center md:justify-between">
+                  <div className="min-w-0">
+                    <p className="truncate text-lg font-bold">{jd.tieu_de}</p>
+                    <p className="subtle mt-1 truncate">{jd.ten_cong_ty || 'Chưa có công ty'}</p>
+                    <p className="subtle mt-1 break-all text-sm">{jd.jd_id}</p>
+                  </div>
+                  <button type="button" onClick={() => handleDeleteJd(jd.jd_id)} className="btn-danger">Xóa</button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => handleDeleteJd(jd.jd_id)}
-                  className="inline-flex items-center rounded-full bg-red-600 px-5 py-2.5 text-base font-semibold text-white hover:bg-red-700 flex-shrink-0"
-                >
-                  Xóa JD
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-    </>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
   );
 }
 

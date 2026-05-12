@@ -1,23 +1,27 @@
 import React from 'react';
-import Navbar from '../components/Navbar';
-import Sidebar from '../components/Sidebar';
-import ChatBox from '../components/ChatBox';
 import { Outlet } from 'react-router-dom';
+import Navbar from '../components/Navbar';
+import ChatBox from '../components/ChatBox';
 
 function MainLayout() {
   return (
-    <div className="min-h-screen text-[#1d1d1f] overflow-hidden flex flex-col items-center">
+    <div className="app-shell flex min-h-screen flex-col">
       <Navbar />
-
-      <div className="w-full h-screen pt-28 pb-10 px-6 md:px-10 flex max-w-[1720px] mx-auto gap-6 md:gap-8">
-        <Sidebar />
-
-        {/* Vùng Content Chính của mỗi trang sẽ hiển thị ở đây thông qua Outlet */}
-        <main className="modern-scrollbar flex-1 flex flex-col h-full overflow-y-auto pr-3 pb-12 space-y-8">
-          <Outlet />
-        </main>
-      </div>
-
+      <main className="page-wrap flex-1">
+        <Outlet />
+      </main>
+      <footer className="border-t border-[#cfe0f8] bg-[#dceaff]">
+        <div className="flex w-full flex-col gap-4 px-[38px] py-8 text-sm text-slate-600 md:flex-row md:items-center md:justify-between">
+          <p className="text-xl font-extrabold text-[#07152b]">Alysium AI</p>
+          <p>© 2024 Alysium Intelligence Systems. Professional Grade Analysis.</p>
+          <div className="flex flex-wrap gap-6">
+            <span>Privacy Policy</span>
+            <span>Terms of Service</span>
+            <span>API Documentation</span>
+            <span>Support</span>
+          </div>
+        </div>
+      </footer>
       <ChatBox />
     </div>
   );
